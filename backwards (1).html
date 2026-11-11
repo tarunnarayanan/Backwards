@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Backwards</title>
+<link href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F2EEFF;--ink:#1B1535;--card:#FFFFFF;--line:#D6CCFF;--hot:#6C4BFF;--on-hot:#FFFFFF;--pop:#FFD21F;--ok:#12996a;--bad:#C62E4A;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1B1535;--ink:#F5F1FF;--card:#2A2150;--line:#43387A;--hot:#8E75FF;--on-hot:#150F33;--ok:#3DDC97;--bad:#FF7A93}}
+:root[data-theme="dark"]{--bg:#1B1535;--ink:#F5F1FF;--card:#2A2150;--line:#43387A;--hot:#8E75FF;--on-hot:#150F33;--ok:#3DDC97;--bad:#FF7A93}
+html{background:var(--bg)}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:"DM Sans",system-ui,sans-serif;font-size:17px;line-height:1.45}
+#app{max-width:480px;margin:0 auto;padding:20px 20px 40px}
+.t{font-family:"Bagel Fat One","DM Sans",system-ui,sans-serif;font-weight:400;font-size:clamp(52px,17vw,84px);line-height:1;margin:28px 0 12px;letter-spacing:.5px}
+.t span{display:inline-block;animation:flip .9s .15s cubic-bezier(.3,1.4,.5,1) both}
+@keyframes flip{from{transform:scaleX(-1)}to{transform:scaleX(1)}}
+@media (prefers-reduced-motion:reduce){.t span{animation:none}}
+h2{font-family:"Bagel Fat One","DM Sans",sans-serif;font-weight:400;font-size:28px;margin:8px 0 12px}
+.sub{font-size:19px;margin:0 0 28px;max-width:30ch}
+.lab{font-weight:700;margin:20px 0 8px}
+.card{background:var(--card);border:2px solid var(--line);border-radius:20px;padding:18px;margin:0 0 16px}
+.phrase{font-family:"Bagel Fat One","DM Sans",sans-serif;font-size:28px;line-height:1.2}
+.btn{display:block;width:100%;font:700 18px "DM Sans",system-ui,sans-serif;border:0;border-radius:16px;padding:16px;margin:0 0 12px;background:var(--hot);color:var(--on-hot);cursor:pointer}
+.btn.alt{background:var(--pop);color:#1B1535}
+.btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--line)}
+.btn.rec{background:var(--bad);color:#fff;padding:22px}
+.btn.rec.on{outline:4px solid var(--pop);outline-offset:3px}
+.btn:disabled{opacity:.5}
+.btn:focus-visible,.link:focus-visible,input:focus-visible{outline:3px solid var(--pop);outline-offset:2px}
+.link{background:none;border:0;color:var(--ink);font:600 16px "DM Sans",sans-serif;padding:8px 0;margin:0 0 8px;cursor:pointer;text-decoration:underline}
+canvas{width:100%;height:90px;display:block}
+.row{display:flex;gap:10px}.row .btn{margin:0 0 12px}
+.score{font-family:"Bagel Fat One",sans-serif;font-size:72px;line-height:1;margin:4px 0}
+.err{color:var(--bad);font-weight:600;margin:0 0 12px;min-height:0}
+.small{font-size:14px;opacity:.75;margin:4px 0 16px}
+input{width:100%;box-sizing:border-box;font:17px "DM Sans",sans-serif;padding:14px;border-radius:14px;border:2px solid var(--line);background:var(--card);color:var(--ink);margin:0 0 16px}
+.board{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px}
+.chip{background:var(--card);border:2px solid var(--line);border-radius:999px;padding:4px 12px;font-weight:600;font-size:15px}
+.chip.me{border-color:var(--hot)}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const AC = window.AudioContext || window.webkitAudioContext;
+let ctx, cur;
+const $ = s => document.querySelector(s);
+const app = $('#app');
+const S = {};
+const esc = t => t.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const PHRASES = ['Banana pancakes for breakfast','I left my umbrella on the train','The quick brown fox jumps over the lazy dog','Happy Friday, everybody','She sells sea shells by the sea shore','Pass the salt, please','My phone is at one percent','Coffee first, then talking'];
+
+function h(html){
+  stopAll();
+  app.innerHTML = html;
+  app.querySelectorAll('[data-home]').forEach(b => b.onclick = home);
+  window.scrollTo(0,0);
+}
+const back = () => '<button class="link" data-home>← Home</button>';
+
+function stopAll(){ try{ cur && cur.stop(); }catch(e){} cur = null; }
+function play(b, loop){
+  stopAll(); ctx.resume();
+  const s = ctx.createBufferSource();
+  s.buffer = b; s.loop = !!loop; s.connect(ctx.destination); s.start(); cur = s;
+}
+function rev(b){
+  const o = ctx.createBuffer(b.numberOfChannels, b.length, b.sampleRate);
+  for(let c=0;c<b.numberOfChannels;c++) o.getChannelData(c).set(b.getChannelData(c).slice().reverse());
+  return o;
+}
+function env(b, n=40){
+  const d = b.getChannelData(0); let m = 0;
+  for(let i=0;i<d.length;i++){ const a = Math.abs(d[i]); if(a>m) m=a; }
+  const t = m*0.06; let s = 0, e = d.length-1;
+  while(s<e && Math.abs(d[s])<t) s++;
+  while(e>s && Math.abs(d[e])<t) e--;
+  const w = Math.max(1,(e-s+1)/n), out = [];
+  for(let k=0;k<n;k++){
+    let sum=0,c=0;
+    for(let i=Math.floor(s+k*w); i<Math.floor(s+(k+1)*w) && i<=e; i++){ sum+=d[i]*d[i]; c++; }
+    out.push(c ? Math.sqrt(sum/c) : 0);
+  }
+  const mx = Math.max(...out) || 1;
+  return out.map(v => v/mx);
+}
+function corr(a,b){
+  const n=a.length, ma=a.reduce((x,y)=>x+y)/n, mb=b.reduce((x,y)=>x+y)/n;
+  let nu=0,da=0,db=0;
+  for(let i=0;i<n;i++){ const x=a[i]-ma, y=b[i]-mb; nu+=x*y; da+=x*x; db+=y*y; }
+  return da&&db ? nu/Math.sqrt(da*db) : 0;
+}
+function wave(id, b){
+  const c = $('#'+id); if(!c) return;
+  const g = c.getContext('2d'), W = c.width = 600, H = c.height = 120;
+  g.fillStyle = getComputedStyle(document.body).getPropertyValue('--hot').trim() || '#6C4BFF';
+  const e = env(b, 48), bw = W/e.length;
+  e.forEach((v,i) => { const bh = Math.max(4, v*H*.95); g.fillRect(i*bw+2, (H-bh)/2, bw-4, bh); });
+}
+async function startRec(){
+  ctx = ctx || new AC();
+  stopAll();
+  const s = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false}});
+  const mr = new MediaRecorder(s), ch = [];
+  mr.ondataavailable = e => ch.push(e.data);
+  const done = new Promise(r => mr.onstop = async () => {
+    s.getTracks().forEach(t => t.stop());
+    const ab = await new Blob(ch,{type:mr.mimeType}).arrayBuffer();
+    r(await ctx.decodeAudioData(ab));
+  });
+  mr.start();
+  return {stop:()=>mr.stop(), done};
+}
+function recBtn(id, label, cb){
+  const b = $('#'+id); let r = null; b.textContent = label;
+  b.onclick = async () => {
+    if(!r){
+      try{ r = await startRec(); b.classList.add('on'); b.textContent = 'Tap to stop'; }
+      catch(e){ $('#err').innerHTML = 'Microphone blocked here. Use your phone’s recorder instead: <input type="file" id="fb" accept="audio/*" capture>'; $('#fb').onchange = async ev => { const f = ev.target.files[0]; if(!f) return; try{ ctx = ctx || new AC(); cb(await ctx.decodeAudioData(await f.arrayBuffer())); }catch(x){ $('#err').textContent = 'That file could not be read. Try a different recording.'; } }; }
+    } else {
+      const x = r; r = null; b.disabled = true; b.classList.remove('on'); b.textContent = 'Flipping…';
+      x.stop();
+      try{ cb(await x.done); }
+      catch(e){ b.disabled = false; b.textContent = label; $('#err').textContent = 'That recording could not be read. Try again.'; }
+    }
+  };
+}
+
+/* Home */
+function home(){
+  ctx = ctx || new AC();
+  h(`<h1 class="t"><span>Backwards</span></h1>
+  <p class="sub">Say a line. Flip it. Sing the backwards sound back and see how close you get.</p>
+  <button class="btn" id="solo">Solo challenge</button>
+  <button class="btn alt" id="party">Party mode</button>
+  <p class="small">Needs your microphone. Works best with headphones off, in a quiet spot.</p>`);
+  $('#solo').onclick = () => { S.i = Math.floor(Math.random()*PHRASES.length); soloSay(); };
+  $('#party').onclick = partySetup;
+}
+
+/* Solo */
+function soloSay(){
+  h(`${back()}<p class="lab">Say or sing this line</p>
+  <div class="card"><div class="phrase">${PHRASES[S.i]}</div></div>
+  <button class="btn rec" id="r"></button><p class="err" id="err"></p>
+  <button class="link" id="skip">Different line</button>`);
+  recBtn('r','Tap to record', b => { S.o = b; S.f = rev(b); soloFlip(); });
+  $('#skip').onclick = () => { S.i = (S.i+1)%PHRASES.length; soloSay(); };
+}
+function soloFlip(){
+  h(`${back()}<h2>Here it is backwards</h2>
+  <div class="card"><canvas id="w1"></canvas></div>
+  <button class="btn" id="pf">Play it backwards</button>
+  <button class="btn alt" id="go">I’m ready to mimic it</button>`);
+  wave('w1', S.f);
+  $('#pf').onclick = () => play(S.f);
+  $('#go').onclick = soloMimic;
+}
+function soloMimic(){
+  h(`${back()}<h2>Sing the backwards sound</h2>
+  <p>Copy the odd sounds exactly. Don’t say the line normally.</p>
+  <button class="btn ghost" id="pf">Hear it backwards again</button>
+  <button class="btn rec" id="r"></button><p class="err" id="err"></p>`);
+  $('#pf').onclick = () => play(S.f);
+  recBtn('r','Tap to record your attempt', b => { S.a = b; S.ar = rev(b); soloResult(); });
+}
+function soloResult(){
+  const sc = Math.round(Math.max(0, corr(env(S.o), env(S.ar)))*100);
+  const v = sc>=70 ? 'Spooky close.' : sc>=45 ? 'Getting there.' : 'Not close, but funny.';
+  h(`${back()}<h2>Your attempt, flipped</h2>
+  <div class="score">${sc}%</div><p style="margin:0 0 16px">${v}</p>
+  <p class="lab">Original</p><div class="card"><canvas id="w1"></canvas></div>
+  <p class="lab">Your attempt, flipped back</p><div class="card"><canvas id="w2"></canvas></div>
+  <div class="row"><button class="btn" id="po">Play original</button><button class="btn" id="pa">Play yours</button></div>
+  <button class="btn alt" id="next">Next line</button>
+  <p class="small">The score compares rhythm and loudness, not pitch.</p>`);
+  wave('w1', S.o); wave('w2', S.ar);
+  $('#po').onclick = () => play(S.o);
+  $('#pa').onclick = () => play(S.ar);
+  $('#next').onclick = () => { S.i = (S.i+1)%PHRASES.length; soloSay(); };
+}
+
+/* Party */
+function board(){
+  return `<div class="board">${S.pl.map((p,i)=>`<span class="chip ${i===S.k?'me':''}">${esc(p.n)} ${p.p}</span>`).join('')}</div>`;
+}
+function partySetup(){
+  h(`${back()}<h2>Who’s playing?</h2>
+  <p>Add names separated by commas. You need at least two.</p>
+  <input id="names" value="Player 1, Player 2" aria-label="Player names">
+  <button class="btn" id="start">Start game</button>`);
+  $('#start').onclick = () => {
+    const n = $('#names').value.split(',').map(x=>x.trim()).filter(Boolean).slice(0,8);
+    if(n.length<2){ $('#names').value = 'Player 1, Player 2'; return; }
+    S.pl = n.map(x=>({n:x,p:0})); S.k = 0; partyHide();
+  };
+}
+function partyHide(){
+  h(`${back()}${board()}<h2>Pass the phone to ${esc(S.pl[S.k].n)}</h2>
+  <p>Record a secret line or a few seconds of singing. Everyone else, look away.</p>
+  <button class="btn rec" id="r"></button><p class="err" id="err"></p>`);
+  recBtn('r','Tap to record', b => { S.o = b; S.f = rev(b); partyGuess(); });
+}
+function partyGuess(){
+  h(`${back()}${board()}<h2>Everyone, listen</h2>
+  <p>This is ${esc(S.pl[S.k].n)}’s clip backwards. Shout out your guesses.</p>
+  <button class="btn" id="pf">Play backwards</button>
+  <button class="btn alt" id="rv">Reveal the answer</button>`);
+  $('#pf').onclick = () => play(S.f);
+  $('#rv').onclick = partyReveal;
+}
+function partyReveal(){
+  const others = S.pl.map((p,i)=>({p,i})).filter(x=>x.i!==S.k);
+  h(`${back()}${board()}<h2>The original</h2>
+  <div class="card"><canvas id="w1"></canvas></div>
+  <button class="btn" id="po">Play original</button>
+  <p class="lab">Who guessed it?</p>
+  ${others.map(x=>`<button class="btn ghost" data-w="${x.i}">${esc(x.p.n)}</button>`).join('')}
+  <button class="btn ghost" data-w="-1">Nobody</button>
+  <button class="link" id="end">End game</button>`);
+  wave('w1', S.o);
+  $('#po').onclick = () => play(S.o);
+  app.querySelectorAll('[data-w]').forEach(b => b.onclick = () => {
+    const w = +b.dataset.w;
+    if(w>=0) S.pl[w].p++;
+    S.k = (S.k+1)%S.pl.length; partyHide();
+  });
+  $('#end').onclick = partyEnd;
+}
+function partyEnd(){
+  const r = [...S.pl].sort((a,b)=>b.p-a.p);
+  h(`${back()}<h2>${esc(r[0].n)} wins</h2>
+  <div class="card">${r.map(p=>`<div style="display:flex;justify-content:space-between;padding:6px 0"><b>${esc(p.n)}</b><span>${p.p}</span></div>`).join('')}</div>
+  <button class="btn" id="again">Play again</button>`);
+  $('#again').onclick = partySetup;
+}
+home();
+</script>
+</body>
+</html>
