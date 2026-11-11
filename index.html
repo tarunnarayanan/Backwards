@@ -3,108 +3,255 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1B1535">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Backwards">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%94%81%3C/text%3E%3C/svg%3E">
 <title>Backwards</title>
 <link href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#F2EEFF;--ink:#1B1535;--card:#FFFFFF;--line:#D6CCFF;--hot:#6C4BFF;--on-hot:#FFFFFF;--pop:#FFD21F;--bad:#C62E4A;
+:root{--bg:#F2EEFF;--ink:#1B1535;--card:#FFFFFF;--line:#CFC3FF;--hot:#6C4BFF;--on-hot:#FFFFFF;--pop:#FFB800;--bad:#E0334F;
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1B1535;--ink:#F5F1FF;--card:#2A2150;--line:#43387A;--hot:#8E75FF;--on-hot:#150F33;--bad:#FF7A93}}
-:root[data-theme="dark"]{--bg:#1B1535;--ink:#F5F1FF;--card:#2A2150;--line:#43387A;--hot:#8E75FF;--on-hot:#150F33;--bad:#FF7A93}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#150F33;--ink:#F5F1FF;--card:#241B4D;--line:#4A3E88;--hot:#8E75FF;--on-hot:#150F33;--pop:#FFD21F;--bad:#FF5C78}}
+:root[data-theme="dark"]{--bg:#150F33;--ink:#F5F1FF;--card:#241B4D;--line:#4A3E88;--hot:#8E75FF;--on-hot:#150F33;--pop:#FFD21F;--bad:#FF5C78}
+*{-webkit-tap-highlight-color:transparent}
 html{background:var(--bg)}
-body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:"DM Sans",system-ui,sans-serif;font-size:17px;line-height:1.4}
-#app{max-width:480px;margin:0 auto;padding:20px 20px 40px}
-.t{font-family:"Bagel Fat One","DM Sans",system-ui,sans-serif;font-weight:400;font-size:clamp(48px,15vw,72px);line-height:1;margin:20px 0 8px}
-.t span{display:inline-block;animation:flip .9s .15s cubic-bezier(.3,1.4,.5,1) both}
-@keyframes flip{from{transform:scaleX(-1)}to{transform:scaleX(1)}}
-@media (prefers-reduced-motion:reduce){.t span{animation:none}}
-.sub{margin:0 0 20px}
-.step{background:var(--card);border:2px solid var(--line);border-radius:20px;padding:14px;margin:0 0 12px;display:flex;gap:14px;align-items:center}
-.n{font-family:"Bagel Fat One",sans-serif;font-size:34px;width:34px;text-align:center;flex:none}
-.btn{flex:1;font:700 18px "DM Sans",system-ui,sans-serif;border:0;border-radius:14px;padding:16px 10px;background:var(--hot);color:var(--on-hot);cursor:pointer}
-.btn.rec{background:var(--bad);color:#fff}
-.btn.rec.on{outline:4px solid var(--pop);outline-offset:3px}
-.btn:disabled{opacity:.35;cursor:default}
-.btn:focus-visible,.link:focus-visible{outline:3px solid var(--pop);outline-offset:2px}
-.link{background:none;border:0;color:var(--ink);font:600 16px "DM Sans",sans-serif;padding:8px 0;cursor:pointer;text-decoration:underline}
-.msg{min-height:24px;font-weight:600;margin:4px 0 8px}
-.err{color:var(--bad)}
+body{margin:0;min-height:100svh;color:var(--ink);font-family:"DM Sans",system-ui,sans-serif;font-size:17px;line-height:1.4;
+background:radial-gradient(120% 55% at 50% -8%,color-mix(in srgb,var(--hot) 32%,transparent),transparent 65%),var(--bg);user-select:none;-webkit-user-select:none}
+#app{max-width:460px;margin:0 auto;padding:16px 22px 28px;min-height:calc(100svh - 44px);display:flex;flex-direction:column}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.brand{font-family:"Bagel Fat One","DM Sans",sans-serif;font-size:26px;line-height:1}
+.brand span{display:inline-block;animation:flipin .9s .1s cubic-bezier(.3,1.4,.5,1) both}
+@keyframes flipin{from{transform:scaleX(-1)}to{transform:scaleX(1)}}
+.dots{display:flex;gap:7px}.dots i{width:9px;height:9px;border-radius:50%;background:var(--line);transition:background .3s,transform .3s}
+.dots i.on{background:var(--pop)}.dots i.cur{transform:scale(1.35)}
+.stage{flex:1;display:flex;flex-direction:column}
+h1{font-family:"Bagel Fat One","DM Sans",sans-serif;font-weight:400;font-size:clamp(34px,10.5vw,46px);line-height:1.05;margin:6px 0 8px}
+#hint{margin:0 0 16px;opacity:.82;min-height:48px}
+.score{display:flex;align-items:center;gap:16px;margin:0 0 14px}
+.ring{position:relative;width:96px;height:96px;flex:none}
+.ring svg{width:100%;height:100%}.ring circle{fill:none;stroke-width:10}
+.ring .bg{stroke:var(--line)}.ring .fg{stroke:var(--pop);stroke-linecap:round;transition:stroke-dashoffset 1s cubic-bezier(.2,.8,.2,1)}
+.ring b{position:absolute;inset:0;display:grid;place-items:center;font-family:"Bagel Fat One",sans-serif;font-weight:400;font-size:30px}
+.score p{margin:0;font-weight:600}
+.card{position:relative;background:var(--card);border:2px solid var(--line);border-radius:28px;padding:14px;margin:0 0 22px}
+canvas{display:block;width:100%;height:150px}
+canvas.flip{animation:flipx .8s cubic-bezier(.6,0,.3,1) forwards}
+@keyframes flipx{from{transform:scaleX(1)}to{transform:scaleX(-1)}}
+.time{position:absolute;top:10px;right:16px;font-weight:700;font-size:15px;font-variant-numeric:tabular-nums;opacity:.8}
+.ctrl{display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:auto}
+.lab{font-weight:600;min-height:24px}
+.orb{width:104px;height:104px;border-radius:50%;border:0;background:var(--bad);cursor:pointer;position:relative;transition:transform .12s}
+.orb::after{content:"";position:absolute;inset:0;margin:auto;width:30px;height:30px;border-radius:50%;background:#fff;transition:border-radius .2s}
+.orb.stop::after{border-radius:8px}
+.orb.stop{animation:pulse 1.4s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--bad) 55%,transparent)}100%{box-shadow:0 0 0 26px transparent}}
+@media (prefers-reduced-motion:reduce){.orb.stop{animation:none}canvas.flip{animation:none}.brand span{animation:none}}
+.pill{width:100%;font:700 19px "DM Sans",system-ui,sans-serif;border:0;border-radius:999px;padding:18px;background:var(--hot);color:var(--on-hot);cursor:pointer;transition:transform .12s}
+.pill.ghost{background:transparent;color:var(--ink);border:2px solid var(--line);margin-top:10px}
+.pill.glow{box-shadow:0 0 0 4px color-mix(in srgb,var(--pop) 70%,transparent)}
+.orb:active,.pill:active{transform:scale(.96)}
+.orb:disabled{opacity:.5}
+.links{display:flex;justify-content:center;gap:22px;margin-top:6px}
+.link{background:none;border:0;color:var(--ink);font:600 16px "DM Sans",sans-serif;padding:10px 4px;cursor:pointer;text-decoration:underline}
+.orb:focus-visible,.pill:focus-visible,.link:focus-visible{outline:3px solid var(--pop);outline-offset:3px}
+.err{color:var(--bad);font-weight:600;text-align:center;margin:6px 0 0;min-height:0}
+[hidden]{display:none!important}
 </style>
 </head>
 <body>
-<div id="app">
-  <h1 class="t"><span>Backwards</span></h1>
-  <p class="sub">Sing 5 to 10 seconds. Hear it flipped. Sing the flipped sound back.</p>
-  <div class="step"><div class="n">1</div><button class="btn rec" id="r1">Record my singing</button></div>
-  <div class="step"><div class="n">2</div><button class="btn" id="p1" disabled>Play it backwards</button></div>
-  <div class="step"><div class="n">3</div><button class="btn rec" id="r2" disabled>Record the backwards sound</button></div>
-  <div class="step"><div class="n">4</div><button class="btn" id="p2" disabled>Play my attempt flipped</button></div>
-  <p class="msg" id="msg"></p>
-  <button class="link" id="orig" hidden>Play my original singing</button><br>
-  <button class="link" id="reset">Start over</button>
-</div>
+<main id="app">
+  <header><div class="brand"><span>Backwards</span></div><div class="dots" id="dots" aria-hidden="true"><i></i><i></i><i></i><i></i></div></header>
+  <section class="stage">
+    <h1 id="title"></h1>
+    <p id="hint"></p>
+    <div class="score" id="score" hidden>
+      <div class="ring"><svg viewBox="0 0 120 120"><circle class="bg" cx="60" cy="60" r="52"/><circle class="fg" id="arc" cx="60" cy="60" r="52" stroke-dasharray="326.7" stroke-dashoffset="326.7" transform="rotate(-90 60 60)"/></svg><b id="sc">0</b></div>
+      <p id="verdict"></p>
+    </div>
+    <div class="card"><canvas id="cv" aria-label="Sound waveform"></canvas><div class="time" id="time"></div></div>
+    <div class="ctrl">
+      <button id="main" class="orb" aria-label="Record"></button>
+      <div class="lab" id="lab" aria-live="polite"></div>
+    </div>
+    <button id="next" class="pill ghost" hidden></button>
+    <div class="links"><button class="link" id="l1" hidden></button><button class="link" id="l2" hidden></button></div>
+    <p class="err" id="err" role="alert"></p>
+  </section>
+</main>
 <script>
-const AC = window.AudioContext || window.webkitAudioContext;
-let ctx, cur, tick, S = {};
 const $ = s => document.querySelector(s);
-const msg = (t, bad) => { const m = $('#msg'); m.textContent = t || ''; m.className = 'msg' + (bad ? ' err' : ''); };
-
-function stopPlay(){ try{ cur && cur.stop(); }catch(e){} cur = null; }
-function play(b){
-  stopPlay(); ctx.resume();
-  const s = ctx.createBufferSource();
-  s.buffer = b; s.connect(ctx.destination); s.start(); cur = s;
+const AC = window.AudioContext || window.webkitAudioContext;
+let ctx, cur, raf, rec, S = {st:'idle'};
+const cv = $('#cv'), main = $('#main');
+const buzz = n => { try{ navigator.vibrate && navigator.vibrate(n); }catch(e){} };
+const err = t => { $('#err').textContent = t || ''; };
+function beep(f){
+  try{ ctx = ctx || new AC(); const o = ctx.createOscillator(), g = ctx.createGain();
+    o.frequency.value = f; g.gain.value = .05; o.connect(g); g.connect(ctx.destination); o.start();
+    g.gain.exponentialRampToValueAtTime(.0001, ctx.currentTime+.14); o.stop(ctx.currentTime+.15); }catch(e){}
 }
+function stopPlay(){ cancelAnimationFrame(raf); const s = cur; cur = null; try{ s && s.stop(); }catch(e){} }
 function rev(b){
   const o = ctx.createBuffer(b.numberOfChannels, b.length, b.sampleRate);
   for(let c=0;c<b.numberOfChannels;c++) o.getChannelData(c).set(b.getChannelData(c).slice().reverse());
   return o;
 }
+function env(b, n=48){
+  const d = b.getChannelData(0); let m = 0;
+  for(let i=0;i<d.length;i++){ const a = Math.abs(d[i]); if(a>m) m=a; }
+  const t = m*.06; let s = 0, e = d.length-1;
+  while(s<e && Math.abs(d[s])<t) s++;
+  while(e>s && Math.abs(d[e])<t) e--;
+  const w = Math.max(1,(e-s+1)/n), out = [];
+  for(let k=0;k<n;k++){
+    let sum=0,c=0;
+    for(let i=Math.floor(s+k*w); i<Math.floor(s+(k+1)*w) && i<=e; i++){ sum+=d[i]*d[i]; c++; }
+    out.push(c ? Math.sqrt(sum/c) : 0);
+  }
+  const mx = Math.max(...out) || 1;
+  return out.map(v => v/mx);
+}
+function corr(a,b){
+  const n=a.length, ma=a.reduce((x,y)=>x+y)/n, mb=b.reduce((x,y)=>x+y)/n;
+  let nu=0,da=0,db=0;
+  for(let i=0;i<n;i++){ const x=a[i]-ma, y=b[i]-mb; nu+=x*y; da+=x*x; db+=y*y; }
+  return da&&db ? nu/Math.sqrt(da*db) : 0;
+}
+function draw(vals, prog=-1, ghost){
+  const dpr = devicePixelRatio||1, w = cv.clientWidth, h = cv.clientHeight;
+  if(cv.width !== Math.round(w*dpr)){ cv.width = Math.round(w*dpr); cv.height = Math.round(h*dpr); }
+  const g = cv.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,w,h);
+  const st = getComputedStyle(document.documentElement);
+  const hot = st.getPropertyValue('--hot').trim(), pop = st.getPropertyValue('--pop').trim(), line = st.getPropertyValue('--line').trim();
+  const n = vals.length, bw = w/n;
+  const bar = (i, v, col, wid) => {
+    const bh = Math.max(6, v*h*.92), x = i*bw + (bw-wid)/2, y = (h-bh)/2;
+    g.fillStyle = col; g.beginPath();
+    g.roundRect ? g.roundRect(x,y,wid,bh,wid/2) : g.rect(x,y,wid,bh); g.fill();
+  };
+  if(ghost) ghost.forEach((v,i) => bar(i, v, line, bw*.9));
+  vals.forEach((v,i) => bar(i, v, (prog>=0 && i/n<=prog) ? pop : hot, bw*(ghost?.38:.58)));
+}
+function playB(b, vals, ghost, done){
+  stopPlay(); ctx.resume();
+  const s = ctx.createBufferSource(); s.buffer = b; s.connect(ctx.destination);
+  const t0 = ctx.currentTime; s.start(); cur = s; buzz(10);
+  s.onended = () => { if(cur===s){ cancelAnimationFrame(raf); cur = null; draw(vals,-1,ghost); done && done(); } };
+  const step = () => { if(cur!==s) return; draw(vals, (ctx.currentTime-t0)/b.duration, ghost); raf = requestAnimationFrame(step); };
+  step();
+}
 async function startRec(){
-  ctx = ctx || new AC();
-  stopPlay();
+  ctx = ctx || new AC(); stopPlay();
   const s = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false}});
+  await ctx.resume();
+  const src = ctx.createMediaStreamSource(s), an = ctx.createAnalyser(); an.fftSize = 1024; src.connect(an);
   const mr = new MediaRecorder(s), ch = [];
   mr.ondataavailable = e => ch.push(e.data);
   const done = new Promise(r => mr.onstop = async () => {
-    s.getTracks().forEach(t => t.stop());
+    s.getTracks().forEach(t => t.stop()); src.disconnect();
     const ab = await new Blob(ch,{type:mr.mimeType}).arrayBuffer();
     r(await ctx.decodeAudioData(ab));
   });
   mr.start();
-  return {stop:()=>mr.stop(), done};
+  return {stop:()=>mr.stop(), done, an};
 }
-function wire(id, label, cb){
-  const b = $('#'+id); let r = null, t0 = 0;
-  b.onclick = async () => {
-    if(!r){
-      try{
-        r = await startRec(); t0 = Date.now(); b.classList.add('on'); b.textContent = 'Tap to stop';
-        tick = setInterval(() => { const s = Math.floor((Date.now()-t0)/1000); msg('Recording… ' + s + 's'); if(s>=30) b.click(); }, 250);
-      }catch(e){ msg('Microphone blocked. Allow mic access in your browser settings for this site.', true); }
-    } else {
-      clearInterval(tick); const x = r; r = null;
-      b.disabled = true; b.classList.remove('on'); b.textContent = 'Flipping…'; msg('');
-      x.stop();
-      try{ const buf = await x.done; b.textContent = label; b.disabled = false; cb(buf); }
-      catch(e){ b.textContent = label; b.disabled = false; msg('That recording could not be read. Try again.', true); }
-    }
+function liveLoop(){
+  const d = new Float32Array(1024), t0 = Date.now(), live = []; let last = 0;
+  const step = () => {
+    if(!rec) return;
+    rec.an.getFloatTimeDomainData(d); let sum = 0; for(const v of d) sum += v*v;
+    if(Date.now()-last > 55){ live.push(Math.min(1, Math.sqrt(sum/d.length)*6)); last = Date.now(); }
+    draw(Array.from({length:48},(_,i) => live[live.length-48+i] || .04));
+    const sec = (Date.now()-t0)/1000; $('#time').textContent = sec.toFixed(1)+'s';
+    if(sec>=30){ onMain(); return; }
+    raf = requestAnimationFrame(step);
   };
+  step();
 }
-wire('r1','Record my singing', b => {
-  S = {o:b, f:rev(b)};
-  $('#p1').disabled = false; $('#r2').disabled = false; $('#p2').disabled = true; $('#orig').hidden = false;
-  msg('Tap 2 to hear it backwards.');
-});
-wire('r2','Record the backwards sound', b => {
-  S.a = rev(b); $('#p2').disabled = false; msg('Tap 4 to hear your attempt flipped.');
-});
-$('#p1').onclick = () => play(S.f);
-$('#p2').onclick = () => play(S.a);
-$('#orig').onclick = () => play(S.o);
-$('#reset').onclick = () => {
-  stopPlay(); S = {}; msg('');
-  $('#p1').disabled = true; $('#r2').disabled = true; $('#p2').disabled = true; $('#orig').hidden = true;
-};
+function ui(o){
+  stopPlay(); err('');
+  const dots = document.querySelectorAll('#dots i');
+  dots.forEach((d,i) => { d.className = i<=o.d ? 'on' + (i===o.d?' cur':'') : ''; });
+  $('#title').textContent = o.t; $('#hint').textContent = o.h || '';
+  main.className = o.orb ? 'orb' + (o.orb==='stop' ? ' stop' : '') : 'pill' + (o.glow ? ' glow' : '');
+  main.textContent = o.orb ? '' : o.m; main.setAttribute('aria-label', o.orb ? (o.orb==='stop'?'Stop recording':'Record') : o.m);
+  main.disabled = false;
+  $('#lab').textContent = o.lab || ''; $('#time').textContent = '';
+  $('#score').hidden = !o.score;
+  [['next',o.n],['l1',o.l1],['l2',o.l2]].forEach(([id,txt]) => { const b = $('#'+id); b.hidden = !txt; b.textContent = txt || ''; });
+  $('#next').classList.remove('glow');
+}
+function go(st){
+  S.st = st;
+  if(st==='idle'){
+    ui({d:0,t:'Sing a few seconds',h:'5 to 10 seconds is perfect. Any song works.',orb:'rec',lab:'Tap to record'});
+    draw(Array(48).fill(.07));
+  }
+  if(st==='flip'){
+    ui({d:1,t:'Now hear it backwards',h:'Listen closely. This is what you will sing back.',m:'Play backwards',glow:true,n:'Sing it back'});
+    draw(S.eo);
+    const done = () => { cv.classList.remove('flip'); draw(S.ef); };
+    if(matchMedia('(prefers-reduced-motion:reduce)').matches) done();
+    else { cv.classList.add('flip'); cv.addEventListener('animationend', done, {once:true}); }
+  }
+  if(st==='ready2'){
+    ui({d:2,t:'Sing the backwards sound',h:'Copy the strange sounds, not the words.',orb:'rec',lab:'Tap to record',l1:'Hear it backwards again'});
+    draw(S.ef);
+  }
+  if(st==='reveal'){
+    const sc = Math.round(Math.max(0, corr(S.eo, S.ea))*100);
+    const v = sc>=70 ? 'Spooky close' : sc>=45 ? 'Getting there' : 'Wonderfully off';
+    S.sc = sc;
+    ui({d:3,t:v,h:'Your attempt, flipped back, over your original. The score compares rhythm and loudness, not pitch.',m:'Play my attempt',n:'Share my score',l1:'Play original',l2:'Try again',score:true});
+    draw(S.ea,-1,S.eo);
+    $('#verdict').textContent = 'Match with your original';
+    const arc = $('#arc'), out = $('#sc'); arc.style.strokeDashoffset = 326.7; out.textContent = 0;
+    requestAnimationFrame(() => requestAnimationFrame(() => { arc.style.strokeDashoffset = 326.7*(1-sc/100); }));
+    const t0 = performance.now();
+    (function tick(t){ const p = Math.min(1,(t-t0)/1000); out.textContent = Math.round(sc*p); if(p<1) requestAnimationFrame(tick); })(t0);
+    buzz([20,40,20]); beep(660);
+    setTimeout(() => { if(S.st==='reveal') playB(S.a, S.ea, S.eo); }, 700);
+  }
+}
+async function beginRec(n){
+  try{ rec = await startRec(); }
+  catch(e){ err('Microphone blocked. Allow mic access for this site in your browser settings.'); return; }
+  buzz(20); S.st = 'rec'+n;
+  ui({d:n===1?0:2,t:n===1?'Recording…':'Sing it back',h:n===1?'Sing your 5 to 10 seconds, then tap stop.':'Sing the backwards sound you just heard.',orb:'stop',lab:'Tap to stop'});
+  liveLoop();
+}
+async function stopRec(){
+  const x = rec, n = S.st; rec = null; cancelAnimationFrame(raf); buzz(30);
+  main.disabled = true; $('#lab').textContent = 'Flipping…'; x.stop(); beep(520);
+  try{
+    const b = await x.done;
+    if(n==='rec1'){ S.o = b; S.f = rev(b); S.eo = env(S.o); S.ef = env(S.f); go('flip'); }
+    else { S.a = rev(b); S.ea = env(S.a); go('reveal'); }
+  }catch(e){ go(n==='rec1' ? 'idle' : 'ready2'); err('That recording could not be read. Try again.'); }
+}
+function onMain(){
+  const st = S.st;
+  if(st==='idle') beginRec(1);
+  else if(st==='ready2') beginRec(2);
+  else if(st==='rec1' || st==='rec2') stopRec();
+  else if(st==='flip'){ playB(S.f, S.ef, null, () => $('#next').classList.add('glow')); }
+  else if(st==='reveal') playB(S.a, S.ea, S.eo);
+}
+async function share(){
+  const text = 'I scored ' + S.sc + '% on the Backwards challenge. Can you sing it back better?';
+  try{
+    if(navigator.share) await navigator.share({title:'Backwards', text, url:location.href});
+    else { await navigator.clipboard.writeText(text + ' ' + location.href); err('Link copied. Paste it anywhere.'); }
+  }catch(e){}
+}
+main.onclick = onMain;
+$('#next').onclick = () => { if(S.st==='flip') go('ready2'); else if(S.st==='reveal') share(); };
+$('#l1').onclick = () => { if(S.st==='ready2') playB(S.f, S.ef); else if(S.st==='reveal') playB(S.o, S.eo, S.ea); };
+$('#l2').onclick = () => go('idle');
+addEventListener('resize', () => { if(S.st==='idle') draw(Array(48).fill(.07)); });
+go('idle');
 </script>
 </body>
 </html>
